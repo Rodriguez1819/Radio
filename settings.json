@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "192.168.20.39",
+            "port": 3306,
+            "driver": "MariaDB",
+            "name": "BDTienda",
+            "database": "biblioteca",
+            "username": "alumno5A",
+            "password": "uarm2025"
+        }
+    ]
+}
