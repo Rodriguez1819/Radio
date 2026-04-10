@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DJ Panel - Supernova Radio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f0f23 0%, #1a1a3f 50%, #0f0f23 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      overflow-x: hidden;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: twinkle 3s infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      background: rgba(20, 20, 40, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(100, 200, 255, 0.2);
+      border-radius: 20px;
+      padding: 60px 40px;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 100, 255, 0.2), 
+                  inset 0 1px 20px rgba(100, 200, 255, 0.1);
+      animation: slideUp 0.8s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .title {
+      font-family: 'Space Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #00d4ff, #ff006e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #00d4ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+
+    .song-display {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      border-radius: 12px;
+      padding: 25px;
+      margin: 30px 0;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .song-display::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translate(-100%, -100%); }
+      100% { transform: translate(100%, 100%); }
+    }
+
+    .song-name {
+      position: relative;
+      z-index: 1;
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      color: #00d4ff;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin: 30px 0;
+      flex-wrap: wrap;
+    }
+
+    button {
+      flex: 1;
+      min-width: 140px;
+      padding: 18px 20px;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+      z-index: 0;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button span {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-next {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: white;
+      box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-next:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(0, 212, 255, 0.5);
+    }
+
+    .btn-next:active {
+      transform: translateY(0);
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-toggle {
+      flex: 1;
+      padding: 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 2px solid;
+    }
+
+    .btn-toggle.on {
+      background: linear-gradient(135deg, #00ff88, #00cc66);
+      color: #0f0f23;
+      border-color: #00ff88;
+      box-shadow: 0 8px 20px rgba(0, 255, 136, 0.3);
+    }
+
+    .btn-toggle.off {
+      background: linear-gradient(135deg, #ff3366, #cc0044);
+      color: white;
+      border-color: #ff3366;
+      box-shadow: 0 8px 20px rgba(255, 51, 102, 0.3);
+    }
+
+    .btn-toggle:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-toggle:active {
+      transform: translateY(0);
+    }
+
+    .status {
+      display: flex;
+      gap: 20px;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px solid rgba(100, 200, 255, 0.2);
+    }
+
+    .status-item {
+      flex: 1;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .status-label {
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: #00d4ff;
+      font-weight: 700;
+    }
+
+    .pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #ff006e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      margin-right: 6px;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 40px 25px;
+        max-width: 100%;
+        margin: 20px;
+      }
+
+      .title {
+        font-size: 24px;
+      }
+
+      button {
+        min-width: 100px;
+        padding: 16px 15px;
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="stars" id="stars"></div>
+
+  <div class="container">
+    <div class="header">
+      <div class="title">🎛️ DJ PANEL</div>
+      <div class="subtitle">Control en vivo</div>
+    </div>
+
+    <div class="song-display">
+      <div class="song-name" id="song">🎶 Esperando...</div>
+    </div>
+
+    <div class="controls">
+      <button class="btn-next" onclick="next()">
+        <span>⏭️ Siguiente</span>
+      </button>
+    </div>
+
+    <div class="toggle-group">
+      <button id="musicBtn" class="btn-toggle on" onclick="toggleMusic()">
+        <span>🎵 Música</span>
+      </button>
+      <button id="micBtn" class="btn-toggle on" onclick="toggleMic()">
+        <span>🎤 Micrófono</span>
+      </button>
+    </div>
+
+    <div class="status">
+      <div class="status-item">
+        <div class="status-label">Estado</div>
+        <div class="status-value"><span class="pulse"></span>EN VIVO</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Oyentes</div>
+        <div class="status-value" id="listeners">0</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Generar estrellas de fondo
+    const starsContainer = document.getElementById('stars');
+    for (let i = 0; i < 100; i++) {
+      const star = document.createElement('div');
+      star.className = 'star';
+      star.style.left = Math.random() * 100 + '%';
+      star.style.top = Math.random() * 100 + '%';
+      star.style.animationDelay = Math.random() * 3 + 's';
+      starsContainer.appendChild(star);
+    }
+
+    const socket = io();
+    let musicOn = true;
+    let micOn = true;
+    let currentStreamId = 0; // 🆕 Sincronizar con servidor
+
+    function next() {
+      socket.emit("next");
+    }
+
+    function toggleMusic() {
+      musicOn = !musicOn;
+      socket.emit("music", musicOn);
+      updateButton('musicBtn', musicOn);
+    }
+
+    function toggleMic() {
+      micOn = !micOn;
+      socket.emit("mic", micOn);
+      updateButton('micBtn', micOn);
+    }
+
+    function updateButton(buttonId, isOn) {
+      const btn = document.getElementById(buttonId);
+      btn.classList.toggle('on', isOn);
+      btn.classList.toggle('off', !isOn);
+    }
+
+    socket.on("song", (name) => {
+      console.log("🎶 Nueva canción:", name);
+      document.getElementById("song").textContent = "🎶 " + name;
+    });
+
+    socket.on("state", (state) => {
+      console.log("Estado actualizado:", state);
+      updateButton('musicBtn', state.musicEnabled);
+      updateButton('micBtn', state.micEnabled);
+      musicOn = state.musicEnabled;
+      micOn = state.micEnabled;
+    });
+
+    // 🆕 Recibir ID del stream actual
+    socket.on("streamId", (id) => {
+      currentStreamId = id;
+      console.log("📡 Stream ID:", id);
+    });
+
+    // 🆕 Notificación de cambio de stream
+    socket.on("streamChange", (newStreamId) => {
+      console.log("🔄 Stream cambió a:", newStreamId);
+      currentStreamId = newStreamId;
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Conectado al servidor");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Desconectado del servidor");
+    });
+  </script>
+
+</body>
+</html>

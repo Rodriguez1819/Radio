@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supernova Radio</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .status {
+      margin-top: 20px;
+      font-size: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      min-height: 20px;
+      text-align: center;
+    }
+
+    .status.playing {
+      color: #00ff88;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid #00ff88;
+    }
+
+    .status.loading {
+      color: #ffaa00;
+      background: rgba(255, 170, 0, 0.1);
+      border: 1px solid #ffaa00;
+    }
+
+    .status.error {
+      color: #ff3366;
+      background: rgba(255, 51, 102, 0.1);
+      border: 1px solid #ff3366;
+    }
+
+    .song-info {
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(0, 212, 255, 0.1);
+      border-radius: 8px;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      text-align: center;
+    }
+
+    .song-info-label {
+      font-size: 11px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .song-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #00d4ff;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <img src="supernova.jpg" class="cover" alt="Supernova Love">
+
+    <h1>SUPER RADIO</h1>
+    <p>Live Music & Voice</p>
+
+    <div class="song-info">
+      <div class="song-info-label">🎶 Ahora tocando</div>
+      <div class="song-name" id="currentSong">Cargando...</div>
+    </div>
+
+    <audio id="radio" controls src="/stream"></audio>
+
+    <div class="status" id="status">⏳ Inicializando...</div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    const audio = document.getElementById("radio");
+    const socket = io();
+    const statusDiv = document.getElementById("status");
+    const songNameDiv = document.getElementById("currentSong");
+    
+    let isPlaying = false;
+    let isReconnecting = false;
+    let currentStreamId = 0;
+
+    function reconnectStream() {
+      if (isReconnecting) return;
+      isReconnecting = true;
+
+      statusDiv.textContent = "🔄 Reconectando...";
+      statusDiv.className = "status loading";
+
+      audio.pause();
+      audio.currentTime = 0;
+      
+      // Forzar reconexión con timestamp
+      const newUrl = "/stream?t=" + Date.now();
+      console.log("🔗 Reconectando a:", newUrl);
+      audio.src = newUrl;
+      
+      setTimeout(() => {
+        audio.play().catch(err => {
+          console.error("❌ Error reproduciendo:", err.message);
+          isReconnecting = false;
+          statusDiv.textContent = "❌ Error";
+          statusDiv.className = "status error";
+        });
+      }, 300);
+    }
+
+    // Estado inicial
+    statusDiv.textContent = "⏳ Cargando...";
+    statusDiv.className = "status loading";
+
+    // Cuando está listo para reproducir
+    audio.addEventListener("canplay", () => {
+      console.log("✅ Audio listo para reproducir");
+      statusDiv.textContent = "🎵 EN VIVO";
+      statusDiv.className = "status playing";
+      isPlaying = true;
+      isReconnecting = false;
+    });
+
+    // Si el stream se corta
+    audio.addEventListener("ended", () => {
+      console.log("⏹️ Stream terminado");
+      if (isPlaying) {
+        setTimeout(reconnectStream, 800);
+      }
+    });
+
+    // Errores
+    audio.addEventListener("error", () => {
+      console.error("❌ Error de audio:", audio.error?.message);
+      isReconnecting = false;
+      if (isPlaying) {
+        statusDiv.textContent = "❌ Error de conexión";
+        statusDiv.className = "status error";
+        setTimeout(reconnectStream, 1500);
+      }
+    });
+
+    // Canción cambió
+    socket.on("song", (songName) => {
+      console.log("🎶 Nueva canción:", songName);
+      songNameDiv.textContent = "🎶 " + songName;
+      
+      if (isPlaying) {
+        statusDiv.textContent = "🔄 Cambiando...";
+        statusDiv.className = "status loading";
+        isPlaying = false;
+        setTimeout(reconnectStream, 600);
+      }
+    });
+
+    socket.on("streamId", (id) => {
+      currentStreamId = id;
+      console.log("📡 Stream ID:", id);
+    });
+
+    socket.on("streamChange", (newStreamId) => {
+      console.log("🔄 Stream cambió:", newStreamId);
+      if (isPlaying && currentStreamId !== newStreamId) {
+        isPlaying = false;
+        setTimeout(reconnectStream, 400);
+      }
+      currentStreamId = newStreamId;
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Socket.IO conectado");
+      statusDiv.textContent = "⏳ Cargando stream...";
+      statusDiv.className = "status loading";
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Desconectado");
+      statusDiv.textContent = "⚠️ Desconectado del servidor";
+      statusDiv.className = "status error";
+      isPlaying = false;
+    });
+  </script>
+
+</body>
+</html>
